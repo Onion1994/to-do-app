@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 )
+
+const todoFile = "todos.json"
 
 type Status string
 
@@ -24,13 +28,37 @@ func PrintTodos(todos []TodoItem) {
 	}
 }
 
-func main() {
+func LoadTodos() ([]TodoItem, error) {
+	file, err := os.Open(todoFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []TodoItem{}, nil
+		}
+		return nil, err
+	}
+	defer file.Close()
 	var todos []TodoItem
+	err = json.NewDecoder(file).Decode(&todos)
+	return todos, err
+}
+
+func SaveTodos(todos []TodoItem) error {
+	file, err := os.Create(todoFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	PrintTodos(todos)
+	return json.NewEncoder(file).Encode(todos)
+}
+
+func main() {
+	todos, _ := LoadTodos()
 
 	addFlag := flag.String("add", "", "Add a new to-do item")
-	descFlag := flag.String("desc", "", "Find to-do item by description")
+	findFlag := flag.String("find", "", "Find to-do item by description")
 	updateFlag := flag.String("update", "", "Update a to-do item status")
-	deleteFlag := flag.String("delete", "", "Delete a to-do item")
+	removeFlag := flag.String("remove", "", "Remove a to-do item")
 
 	flag.Parse()
 
@@ -41,29 +69,28 @@ func main() {
 		}
 
 		todos = append(todos, task)
-		PrintTodos(todos)
+		SaveTodos(todos)
 	}
 
-	if *deleteFlag != "" {
+	if *removeFlag != "" {
 		var updatedTodos []TodoItem
 		for _, element := range todos {
-			if element.Description != *deleteFlag {
+			if element.Description != *removeFlag {
 				updatedTodos = append(updatedTodos, element)
 			}
 		}
 
 		todos = updatedTodos
-		PrintTodos(todos)
+		SaveTodos(todos)
 	}
 
-	if *descFlag != "" && *updateFlag != "" {
+	if *findFlag != "" && *updateFlag != "" {
 		for i := range todos {
-			if todos[i].Description == *descFlag {
+			if todos[i].Description == *findFlag {
 				todos[i].Status = Status(*updateFlag)
 			}
 		}
 
-		PrintTodos(todos)
+		SaveTodos(todos)
 	}
-
 }
