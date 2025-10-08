@@ -1,56 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
-	"os"
 )
-
-const todoFile = "todos.json"
-
-type Status string
-
-const (
-	NotStarted Status = "not started"
-	Started    Status = "started"
-	Completed  Status = "completed"
-)
-
-type TodoItem struct {
-	Description string
-	Status      Status
-}
-
-func PrintTodos(todos []TodoItem) {
-	for _, element := range todos {
-		fmt.Printf("%s: %s\n", element.Description, element.Status)
-	}
-}
-
-func LoadTodos() ([]TodoItem, error) {
-	file, err := os.Open(todoFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []TodoItem{}, nil
-		}
-		return nil, err
-	}
-	defer file.Close()
-	var todos []TodoItem
-	err = json.NewDecoder(file).Decode(&todos)
-	return todos, err
-}
-
-func SaveTodos(todos []TodoItem) error {
-	file, err := os.Create(todoFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	PrintTodos(todos)
-	return json.NewEncoder(file).Encode(todos)
-}
 
 func main() {
 	todos, _ := LoadTodos()
