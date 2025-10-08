@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-const todoFile = "todos.json"
+var todoFile = "todos.json"
 
 func LoadTodos() ([]TodoItem, error) {
 	file, err := os.Open(todoFile)

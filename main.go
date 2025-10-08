@@ -16,42 +16,22 @@ func main() {
 	flag.Parse()
 
 	if *addFlag != "" {
-		task := TodoItem{
-			Description: *addFlag,
-			Status:      NotStarted,
-		}
-
-		todos = append(todos, task)
+		todos = AddNewItem(todos, *addFlag)
 		SaveTodos(todos)
 	}
 
 	if *removeFlag != "" {
-		var updatedTodos []TodoItem
-		for _, element := range todos {
-			if element.Description != *removeFlag {
-				updatedTodos = append(updatedTodos, element)
-			}
-		}
-
-		todos = updatedTodos
+		todos = RemoveItem(todos, *removeFlag)
 		SaveTodos(todos)
 	}
 
 	if *findFlag != "" && *updateStatusFlag != "" {
-		for i := range todos {
-			if todos[i].Description == *findFlag {
-				todos[i].Status = Status(*updateStatusFlag)
-			}
-		}
+		UpdateStatus(todos, *findFlag, Status(*updateStatusFlag))
 		SaveTodos(todos)
 	}
 
 	if *findFlag != "" && *updateDescriptionFlag != "" {
-		for i := range todos {
-			if todos[i].Description == *findFlag {
-				todos[i].Description = *updateDescriptionFlag
-			}
-		}
+		UpdateDesc(todos, *findFlag, *updateDescriptionFlag)
 		SaveTodos(todos)
 	}
 }
