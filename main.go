@@ -26,7 +26,7 @@ func main() {
 	}
 
 	if *findFlag != "" && *updateStatusFlag != "" {
-		UpdateStatus(todos, *findFlag, Status(*updateStatusFlag))
+		UpdateStatus(todos, *findFlag, *updateStatusFlag)
 		SaveTodos(todos)
 	}
 

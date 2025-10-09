@@ -1,14 +1,22 @@
 package main
 
-type Status string
+import "strings"
 
 const (
-	NotStarted Status = "not started"
-	Started    Status = "started"
-	Completed  Status = "completed"
+    NotStarted = "not started"
+    Started    = "started"
+    Completed  = "completed"
 )
 
 type TodoItem struct {
 	Description string
-	Status      Status
+	Status      string
+}
+
+func IsValidStatus(s string) bool {
+    switch strings.ToLower(s) {
+    case NotStarted, Started, Completed:
+        return true
+    }
+    return false
 }

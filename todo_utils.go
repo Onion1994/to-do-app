@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"strings"
+	"fmt"
+)
 
 func PrintTodos(todos []TodoItem) {
 	for _, element := range todos {
@@ -9,31 +12,39 @@ func PrintTodos(todos []TodoItem) {
 }
 
 func AddNewItem(todos []TodoItem, desc string) []TodoItem {
-    return append(todos, TodoItem{Description: desc, Status: NotStarted})
+	lowerCaseDesc := strings.ToLower(desc)
+	for _, item := range todos {
+		if item.Description == lowerCaseDesc {
+			return todos
+		}
+	}
+	return append(todos, TodoItem{Description: lowerCaseDesc, Status: NotStarted})
 }
 
 func RemoveItem(todos []TodoItem, desc string) []TodoItem {
 	var updatedTodos []TodoItem
-		for _, element := range todos {
-			if element.Description != desc {
-				updatedTodos = append(updatedTodos, element)
-			}
+	for _, element := range todos {
+		if element.Description != strings.ToLower(desc) {
+			updatedTodos = append(updatedTodos, element)
 		}
+	}
 	return updatedTodos
 }
 
-func UpdateStatus(todos []TodoItem, desc string, status Status) {
-	for i := range todos {
-			if todos[i].Description == desc {
-				todos[i].Status = Status(status)
+func UpdateStatus(todos []TodoItem, desc string, status string) {
+	if IsValidStatus(status) {
+		for i := range todos {
+			if todos[i].Description == strings.ToLower(desc) {
+				todos[i].Status = strings.ToLower(status)
 			}
 		}
+	}
 }
 
 func UpdateDesc(todos []TodoItem, oldDesc string, newDesc string) {
 	for i := range todos {
-			if todos[i].Description == oldDesc {
-				todos[i].Description = newDesc
-			}
+		if todos[i].Description == strings.ToLower(oldDesc) {
+			todos[i].Description = strings.ToLower(newDesc)
 		}
+	}
 }

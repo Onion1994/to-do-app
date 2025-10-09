@@ -21,8 +21,8 @@ func TestMain(m *testing.M) {
 func TestSaveAndLoadTodos(t *testing.T) {
 	// Arrange
 	todos := []TodoItem{
-		{Description: "Test1", Status: NotStarted},
-		{Description: "Test2", Status: Completed},
+		{Description: "test1", Status: NotStarted},
+		{Description: "test2", Status: Completed},
 	}
 
 	// Act
@@ -37,9 +37,9 @@ func TestSaveAndLoadTodos(t *testing.T) {
 
 	// Assert
 	if len(loaded) != 2 ||
-		loaded[0].Description != "Test1" ||
+		loaded[0].Description != "test1" ||
 		loaded[0].Status != NotStarted ||
-		loaded[1].Description != "Test2" ||
+		loaded[1].Description != "test2" ||
 		loaded[1].Status != Completed {
 
 		t.Errorf("Loaded todos do not match: %+v", loaded)
