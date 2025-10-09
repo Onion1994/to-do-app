@@ -7,6 +7,7 @@ import (
 func main() {
 	todos, _ := LoadTodos()
 
+	viewFlag := flag.Bool("view", false, "View to-do list")
 	addFlag := flag.String("add", "", "Add a new to-do item")
 	findFlag := flag.String("find", "", "Find to-do item by description")
 	updateStatusFlag := flag.String("update-status", "", "Update a to-do item status")
@@ -14,6 +15,10 @@ func main() {
 	removeFlag := flag.String("remove", "", "Remove a to-do item")
 
 	flag.Parse()
+
+	if *viewFlag {
+		PrintTodos(todos)
+	}
 
 	if *addFlag != "" {
 		todos = AddNewItem(todos, *addFlag)
