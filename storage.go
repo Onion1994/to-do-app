@@ -1,22 +1,23 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
-	"os"
 	"log/slog"
+	"os"
 )
 
 var todoFile = "todos.json"
 
-func LoadTodos() ([]TodoItem, error) {
+func LoadTodos(ctx context.Context) ([]TodoItem, error) {
 	file, err := os.Open(todoFile)
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			slog.Info("Todo file does not exist, starting with empty list")
+			slog.InfoContext(ctx, "Todo file does not exist, starting with empty list")
 			return []TodoItem{}, nil
 		}
-		slog.Error("Failed to open todo file", "error", err)
+		slog.ErrorContext(ctx, "Failed to open todo file", "error", err)
 		return nil, err
 	}
 
@@ -25,18 +26,18 @@ func LoadTodos() ([]TodoItem, error) {
 	var todos []TodoItem
 	err = json.NewDecoder(file).Decode(&todos)
 	if err != nil {
-		slog.Error("Failed to decode todos", "error", err)
+		slog.ErrorContext(ctx, "Failed to decode todos", "error", err)
 		return nil, err
 	}
 
-	slog.Info("Loaded todos from disk", "count", len(todos))
+	slog.InfoContext(ctx, "Loaded todos from disk", "count", len(todos))
 	return todos, nil
 }
 
-func SaveTodos(todos []TodoItem) error {
+func SaveTodos(ctx context.Context, todos []TodoItem) error {
 	file, err := os.Create(todoFile)
 	if err != nil {
-		slog.Error("Failed to encode todos", "error", err)
+		slog.ErrorContext(ctx, "Failed to encode todos", "error", err)
 		return err
 	}
 
@@ -44,10 +45,10 @@ func SaveTodos(todos []TodoItem) error {
 
 	err = json.NewEncoder(file).Encode(todos)
 	if err != nil {
-		slog.Error("Failed to encode todos", "error", err)
+		slog.ErrorContext(ctx, "Failed to encode todos", "error", err)
 		return err
 	}
-	
-	slog.Info("Saved todos to disk", "count", len(todos))
+
+	slog.InfoContext(ctx, "Saved todos to disk", "count", len(todos))
 	return nil
 }

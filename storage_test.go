@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"testing"
 )
@@ -20,17 +21,18 @@ func TestMain(m *testing.M) {
 
 func TestSaveAndLoadTodos(t *testing.T) {
 	// Arrange
+	ctx := context.Background()
 	todos := []TodoItem{
 		{Description: "test1", Status: NotStarted},
 		{Description: "test2", Status: Completed},
 	}
 
 	// Act
-	if err := SaveTodos(todos); err != nil {
+	if err := SaveTodos(ctx, todos); err != nil {
 		t.Fatalf("SaveTodos failed: %v", err)
 	}
 
-	loaded, err := LoadTodos()
+	loaded, err := LoadTodos(ctx)
 	if err != nil {
 		t.Fatalf("LoadTodos failed: %v", err)
 	}
