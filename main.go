@@ -22,6 +22,9 @@ func main() {
 	slog.SetDefault(logger)
 
 	slog.InfoContext(ctx, "Application started")
+	defer func() {
+		slog.InfoContext(ctx, "Application exited")
+	}()
 
 	todos, err := LoadTodos(ctx)
 	if err != nil {
@@ -38,32 +41,25 @@ func main() {
 
 	flag.Parse()
 
-	if *viewFlag {
+	switch {
+	case *viewFlag:
 		PrintTodos(todos)
-	}
-
-	if *addFlag != "" {
+	case *addFlag != "":
 		todos = AddNewItem(todos, *addFlag)
 		if err := SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after add", "error", err)
 		}
-	}
-
-	if *removeFlag != "" {
+	case *removeFlag != "":
 		todos = RemoveItem(todos, *removeFlag)
 		if err := SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after remove", "error", err)
 		}
-	}
-
-	if *findFlag != "" && *updateStatusFlag != "" {
+	case *findFlag != "" && *updateStatusFlag != "":
 		UpdateStatus(todos, *findFlag, *updateStatusFlag)
 		if err := SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after status update", "error", err)
 		}
-	}
-
-	if *findFlag != "" && *updateDescriptionFlag != "" {
+	case *findFlag != "" && *updateDescriptionFlag != "":
 		UpdateDesc(todos, *findFlag, *updateDescriptionFlag)
 		if err := SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after description update", "error", err)
