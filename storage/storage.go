@@ -1,21 +1,23 @@
-package main
+package storage
 
 import (
 	"context"
 	"encoding/json"
 	"log/slog"
 	"os"
+
+	"todo-app/todo"
 )
 
 var todoFile = "todos.json"
 
-func LoadTodos(ctx context.Context) ([]TodoItem, error) {
+func LoadTodos(ctx context.Context) ([]todo.Item, error) {
 	file, err := os.Open(todoFile)
 
 	if err != nil {
 		if os.IsNotExist(err) {
 			slog.InfoContext(ctx, "Todo file does not exist, starting with empty list")
-			return []TodoItem{}, nil
+			return []todo.Item{}, nil
 		}
 		slog.ErrorContext(ctx, "Failed to open todo file", "error", err)
 		return nil, err
@@ -23,7 +25,7 @@ func LoadTodos(ctx context.Context) ([]TodoItem, error) {
 
 	defer file.Close()
 
-	var todos []TodoItem
+	var todos []todo.Item
 	err = json.NewDecoder(file).Decode(&todos)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to decode todos", "error", err)
@@ -34,7 +36,7 @@ func LoadTodos(ctx context.Context) ([]TodoItem, error) {
 	return todos, nil
 }
 
-func SaveTodos(ctx context.Context, todos []TodoItem) error {
+func SaveTodos(ctx context.Context, todos []todo.Item) error {
 	file, err := os.Create(todoFile)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to encode todos", "error", err)

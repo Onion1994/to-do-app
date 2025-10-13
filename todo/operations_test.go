@@ -1,4 +1,4 @@
-package main
+package todo
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestAddNewItem(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test")
@@ -22,7 +22,7 @@ func TestAddNewItem(t *testing.T) {
 
 func TestNewItemsAreNormalisedToLowerCase(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "TeSt")
@@ -38,7 +38,7 @@ func TestNewItemsAreNormalisedToLowerCase(t *testing.T) {
 
 func TestItemsCannotBeDuplicated(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test")
@@ -56,7 +56,7 @@ func TestItemsCannotBeDuplicated(t *testing.T) {
 
 func TestRemoveItem(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test1")
@@ -75,7 +75,7 @@ func TestRemoveItem(t *testing.T) {
 
 func TestRemoveItemIgnoresCase(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test1")
@@ -94,7 +94,7 @@ func TestRemoveItemIgnoresCase(t *testing.T) {
 
 func TestRemovingAbsentDoesNothing(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test1")
@@ -112,7 +112,7 @@ func TestRemovingAbsentDoesNothing(t *testing.T) {
 
 func TestUpdateStatus(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test")
@@ -131,7 +131,7 @@ func TestUpdateStatus(t *testing.T) {
 
 func TestUpdateStatusIgnoresCase(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test")
@@ -150,7 +150,7 @@ func TestUpdateStatusIgnoresCase(t *testing.T) {
 
 func TestUpdateStatusOnlyIfValidStatus(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test")
@@ -169,7 +169,7 @@ func TestUpdateStatusOnlyIfValidStatus(t *testing.T) {
 
 func TestUpdateDesc(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test1")
@@ -188,7 +188,7 @@ func TestUpdateDesc(t *testing.T) {
 
 func TestUpdateDescIgnoresCase(t *testing.T) {
 	// Arrange
-	var todos []TodoItem
+	var todos []Item
 
 	// Act
 	todos = AddNewItem(todos, "test1")

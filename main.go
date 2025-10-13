@@ -6,6 +6,8 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"todo-app/storage"
+	"todo-app/todo"
 )
 
 type contextKey string
@@ -26,7 +28,7 @@ func main() {
 		slog.InfoContext(ctx, "Application exited")
 	}()
 
-	todos, err := LoadTodos(ctx)
+	todos, err := storage.LoadTodos(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to load todos", "error", err)
 		return
@@ -43,25 +45,25 @@ func main() {
 
 	switch {
 	case *viewFlag:
-		PrintTodos(todos)
+		todo.PrintTodos(todos)
 	case *addFlag != "":
-		todos = AddNewItem(todos, *addFlag)
-		if err := SaveTodos(ctx, todos); err != nil {
+		todos = todo.AddNewItem(todos, *addFlag)
+		if err := storage.SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after add", "error", err)
 		}
 	case *removeFlag != "":
-		todos = RemoveItem(todos, *removeFlag)
-		if err := SaveTodos(ctx, todos); err != nil {
+		todos = todo.RemoveItem(todos, *removeFlag)
+		if err := storage.SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after remove", "error", err)
 		}
 	case *findFlag != "" && *updateStatusFlag != "":
-		UpdateStatus(todos, *findFlag, *updateStatusFlag)
-		if err := SaveTodos(ctx, todos); err != nil {
+		todo.UpdateStatus(todos, *findFlag, *updateStatusFlag)
+		if err := storage.SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after status update", "error", err)
 		}
 	case *findFlag != "" && *updateDescriptionFlag != "":
-		UpdateDesc(todos, *findFlag, *updateDescriptionFlag)
-		if err := SaveTodos(ctx, todos); err != nil {
+		todo.UpdateDesc(todos, *findFlag, *updateDescriptionFlag)
+		if err := storage.SaveTodos(ctx, todos); err != nil {
 			slog.ErrorContext(ctx, "Failed to save after description update", "error", err)
 		}
 	}

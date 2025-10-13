@@ -1,9 +1,11 @@
-package main
+package storage
 
 import (
 	"context"
 	"os"
 	"testing"
+
+	"todo-app/todo"
 )
 
 func TestMain(m *testing.M) {
@@ -22,9 +24,9 @@ func TestMain(m *testing.M) {
 func TestSaveAndLoadTodos(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	todos := []TodoItem{
-		{Description: "test1", Status: NotStarted},
-		{Description: "test2", Status: Completed},
+	todos := []todo.Item{
+		{Description: "test1", Status: todo.NotStarted},
+		{Description: "test2", Status: todo.Completed},
 	}
 
 	// Act
@@ -40,9 +42,9 @@ func TestSaveAndLoadTodos(t *testing.T) {
 	// Assert
 	if len(loaded) != 2 ||
 		loaded[0].Description != "test1" ||
-		loaded[0].Status != NotStarted ||
+		loaded[0].Status != todo.NotStarted ||
 		loaded[1].Description != "test2" ||
-		loaded[1].Status != Completed {
+		loaded[1].Status != todo.Completed {
 
 		t.Errorf("Loaded todos do not match: %+v", loaded)
 	}
