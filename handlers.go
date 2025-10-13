@@ -22,7 +22,12 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.InfoContext(ctx, "Creating todo", "desc", item.Description, "traceID", traceID)
 
-	todostore.Add(ctx, item.Description)
+	if err := todostore.Add(ctx, item.Description); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"traceID": traceID,
+		})
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
