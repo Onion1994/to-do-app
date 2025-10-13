@@ -7,6 +7,17 @@ import (
     "todo-app/todo"
 )
 
+func GetAll(ctx context.Context,) error {
+	todos, err := storage.LoadTodos(ctx)
+	if err != nil {
+		return err
+	}
+
+	todo.PrintTodos(todos)
+
+	return nil
+}
+
 func Add(ctx context.Context, desc string) error {
 	todos, err := storage.LoadTodos(ctx)
 	if err != nil {

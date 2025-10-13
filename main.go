@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"todo-app/storage"
 	"todo-app/todo"
 	"todo-app/todostore"
 
@@ -18,15 +17,9 @@ type contextKey string
 const traceIDKey contextKey = "traceID"
 
 func startCLI(ctx context.Context, view bool, add, find, updateStatus, updateDesc, remove string) {
-	todos, err := storage.LoadTodos(ctx)
-	if err != nil {
-		slog.ErrorContext(ctx, "Failed to load todos", "error", err)
-		return
-	}
-
 	switch {
 	case view:
-		todo.PrintTodos(todos)
+		todostore.GetAll(ctx)
 	case add != "":
 		todostore.Add(ctx, add)
 	case remove != "":
