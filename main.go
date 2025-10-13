@@ -4,67 +4,74 @@ import (
 	"context"
 	"flag"
 	"log/slog"
+	"net/http"
 
-	"github.com/google/uuid"
 	"todo-app/storage"
 	"todo-app/todo"
+	"todo-app/todostore"
+
+	"github.com/google/uuid"
 )
 
 type contextKey string
 
-const (
-	traceIDKey contextKey = "traceID"
-)
+const traceIDKey contextKey = "traceID"
 
-func main() {
-	traceID := uuid.New().String()
-	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
-
-	logger := slog.Default().With("traceID", traceID)
-	slog.SetDefault(logger)
-
-	slog.InfoContext(ctx, "Application started")
-	defer func() {
-		slog.InfoContext(ctx, "Application exited")
-	}()
-
+func startCLI(ctx context.Context, view bool, add, find, updateStatus, updateDesc, remove string) {
 	todos, err := storage.LoadTodos(ctx)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to load todos", "error", err)
 		return
 	}
 
+	switch {
+	case view:
+		todo.PrintTodos(todos)
+	case add != "":
+		todostore.Add(ctx, add)
+	case remove != "":
+		todostore.Remove(ctx, remove)
+	case find != "" && updateStatus != "":
+		todostore.Update(ctx, find, todo.UpdateFieldStatus, updateStatus)
+	case find != "" && updateDesc != "":
+		todostore.Update(ctx, find, todo.UpdateFieldDescription, updateDesc)
+	default:
+		slog.InfoContext(ctx, "No CLI action specified")
+	}
+}
+
+func startServer() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/create", CreateHandler)
+	// TODO: add /get, /update, /delete handlers
+
+	slog.Info("Starting server on :8080")
+	if err := http.ListenAndServe(":8080", TraceMiddleware(mux)); err != nil {
+		slog.Error("Server failed", "error", err)
+	}
+}
+
+func main() {
+	traceID := uuid.New().String()
+	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
+	logger := slog.Default().With("traceID", traceID)
+	slog.SetDefault(logger)
+	slog.InfoContext(ctx, "Application started")
+	defer slog.InfoContext(ctx, "Application exited")
+
+	modeFlag := flag.String("mode", "cli", "Choose mode: cli or server")
 	viewFlag := flag.Bool("view", false, "View to-do list")
 	addFlag := flag.String("add", "", "Add a new to-do item")
-	findFlag := flag.String("find", "", "Find to-do item by description")
+	findFlag := flag.String("find", "", "Find a to-do item by description")
 	updateStatusFlag := flag.String("update-status", "", "Update a to-do item status")
-	updateDescriptionFlag := flag.String("update-description", "", "Update a to-do item description")
+	updateDescFlag := flag.String("update-description", "", "Update a to-do item description")
 	removeFlag := flag.String("remove", "", "Remove a to-do item")
 
 	flag.Parse()
 
-	switch {
-	case *viewFlag:
-		todo.PrintTodos(todos)
-	case *addFlag != "":
-		todos = todo.AddNewItem(todos, *addFlag)
-		if err := storage.SaveTodos(ctx, todos); err != nil {
-			slog.ErrorContext(ctx, "Failed to save after add", "error", err)
-		}
-	case *removeFlag != "":
-		todos = todo.RemoveItem(todos, *removeFlag)
-		if err := storage.SaveTodos(ctx, todos); err != nil {
-			slog.ErrorContext(ctx, "Failed to save after remove", "error", err)
-		}
-	case *findFlag != "" && *updateStatusFlag != "":
-		todo.UpdateStatus(todos, *findFlag, *updateStatusFlag)
-		if err := storage.SaveTodos(ctx, todos); err != nil {
-			slog.ErrorContext(ctx, "Failed to save after status update", "error", err)
-		}
-	case *findFlag != "" && *updateDescriptionFlag != "":
-		todo.UpdateDesc(todos, *findFlag, *updateDescriptionFlag)
-		if err := storage.SaveTodos(ctx, todos); err != nil {
-			slog.ErrorContext(ctx, "Failed to save after description update", "error", err)
-		}
+	if *modeFlag == "server" {
+		startServer()
+	} else {
+		startCLI(ctx, *viewFlag, *addFlag, *findFlag, *updateStatusFlag, *updateDescFlag, *removeFlag)
 	}
 }
