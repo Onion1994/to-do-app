@@ -11,7 +11,7 @@ func TestAddNewItem(t *testing.T) {
 	// Act
 	todos = AddNewItem(todos, "test")
 
-	//Assert
+	// Assert
 	if len(todos) != 1 ||
 		todos[0].Description != "test" ||
 		todos[0].Status != "not started" {
@@ -27,7 +27,7 @@ func TestNewItemsAreNormalisedToLowerCase(t *testing.T) {
 	// Act
 	todos = AddNewItem(todos, "TeSt")
 
-	//Assert
+	// Assert
 	if len(todos) != 1 ||
 		todos[0].Description != "test" ||
 		todos[0].Status != NotStarted {
@@ -45,7 +45,7 @@ func TestItemsCannotBeDuplicated(t *testing.T) {
 	todos = AddNewItem(todos, "test")
 	todos = AddNewItem(todos, "TEST")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -63,7 +63,7 @@ func TestRemoveItem(t *testing.T) {
 	todos = AddNewItem(todos, "test2")
 	todos = RemoveItem(todos, "test1")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -82,7 +82,7 @@ func TestRemoveItemIgnoresCase(t *testing.T) {
 	todos = AddNewItem(todos, "test2")
 	todos = RemoveItem(todos, "TeSt1")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -100,7 +100,7 @@ func TestRemovingAbsentDoesNothing(t *testing.T) {
 	todos = AddNewItem(todos, "test1")
 	todos = RemoveItem(todos, "test2")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -118,7 +118,7 @@ func TestUpdateStatus(t *testing.T) {
 	todos = AddNewItem(todos, "test")
 	UpdateStatus(todos, "test", Completed)
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -137,7 +137,7 @@ func TestUpdateStatusIgnoresCase(t *testing.T) {
 	todos = AddNewItem(todos, "test")
 	UpdateStatus(todos, "TeSt", "COmpleTED")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -156,7 +156,7 @@ func TestUpdateStatusOnlyIfValidStatus(t *testing.T) {
 	todos = AddNewItem(todos, "test")
 	UpdateStatus(todos, "test", "banana")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -175,7 +175,7 @@ func TestUpdateDesc(t *testing.T) {
 	todos = AddNewItem(todos, "test1")
 	UpdateDesc(todos, "test1", "test2")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
@@ -194,7 +194,7 @@ func TestUpdateDescIgnoresCase(t *testing.T) {
 	todos = AddNewItem(todos, "test1")
 	UpdateDesc(todos, "TeSt1", "TEst2")
 
-	//Assert
+	// Assert
 	expected := 1
 	actual := len(todos)
 
