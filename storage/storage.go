@@ -39,7 +39,7 @@ func LoadTodos(ctx context.Context) ([]todo.Item, error) {
 func SaveTodos(ctx context.Context, todos []todo.Item) error {
 	file, err := os.Create(todoFile)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to encode todos", "error", err)
+		slog.ErrorContext(ctx, "Failed to create or open todo file", "error", err)
 		return err
 	}
 
