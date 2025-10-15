@@ -16,7 +16,12 @@ type contextKey string
 
 const traceIDKey contextKey = "traceID"
 
-func startCLI(ctx context.Context, view bool, add, find, updateStatus, updateDesc, remove string) {
+func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
+	traceID := uuid.New().String()
+	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
+	logger := slog.Default().With("traceID", traceID)
+	slog.SetDefault(logger)
+
 	switch {
 	case view:
 		todostore.GetAll(ctx)
@@ -45,13 +50,6 @@ func startServer() {
 }
 
 func main() {
-	traceID := uuid.New().String()
-	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
-	logger := slog.Default().With("traceID", traceID)
-	slog.SetDefault(logger)
-	slog.InfoContext(ctx, "Application started")
-	defer slog.InfoContext(ctx, "Application exited")
-
 	modeFlag := flag.String("mode", "cli", "Choose mode: cli or server")
 	viewFlag := flag.Bool("view", false, "View to-do list")
 	addFlag := flag.String("add", "", "Add a new to-do item")
@@ -65,6 +63,6 @@ func main() {
 	if *modeFlag == "server" {
 		startServer()
 	} else {
-		startCLI(ctx, *viewFlag, *addFlag, *findFlag, *updateStatusFlag, *updateDescFlag, *removeFlag)
+		startCLI(*viewFlag, *addFlag, *findFlag, *updateStatusFlag, *updateDescFlag, *removeFlag)
 	}
 }
