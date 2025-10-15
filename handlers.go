@@ -28,7 +28,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	var item todo.Item
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "Failed to decode request", "error", err)
+		slog.ErrorContext(ctx, "failed to decode request", "error", err)
 		return
 	}
 
@@ -39,6 +39,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
+		slog.ErrorContext(ctx, "failed to add item", "error", err)
 		return
 	}
 
@@ -59,7 +60,7 @@ func ReadHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
-		slog.ErrorContext(ctx, "Failed to fetch todo items", "error", err)
+		slog.ErrorContext(ctx, "failed to fetch todo items", "error", err)
 		return
 	}
 
@@ -77,7 +78,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	var request UpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "Failed to decode request", "error", err)
+		slog.ErrorContext(ctx, "failed to decode request", "error", err)
 		return
 	}
 
@@ -87,6 +88,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
+		slog.ErrorContext(ctx, "failed to update item", "error", err)
 		return
 	}
 
@@ -103,8 +105,8 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	var item todo.Item
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "Failed to decode request", "error", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		slog.ErrorContext(ctx, "failed to decode request", "error", err)
 		return
 	}
 
@@ -115,6 +117,7 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
+		slog.ErrorContext(ctx, "failed to remove item", "error", err)
 		return
 	}
 

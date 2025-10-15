@@ -24,7 +24,10 @@ func Add(ctx context.Context, desc string) error {
 		return err
 	}
 
-	todos = todo.AddNewItem(todos, desc)
+	todos, err = todo.AddNewItem(todos, desc)
+	if err != nil {
+		return err
+	}
 
 	if err := storage.SaveTodos(ctx, todos); err != nil {
 		return err
@@ -39,7 +42,10 @@ func Remove(ctx context.Context, desc string) error {
 		return err
 	}
 
-	todos = todo.RemoveItem(todos, desc)
+	todos, err = todo.RemoveItem(todos, desc)
+	if err != nil {
+		return err
+	}
 
 	if err := storage.SaveTodos(ctx, todos); err != nil {
 		return err
@@ -56,9 +62,13 @@ func Update(ctx context.Context, desc string, field todo.UpdateField, newValue s
 
 	switch field {
 	case todo.UpdateFieldDescription:
-		todo.UpdateDesc(todos, desc, newValue)
+		if err := todo.UpdateDesc(todos, desc, newValue); err != nil {
+			return err
+		}
 	case todo.UpdateFieldStatus:
-		todo.UpdateStatus(todos, desc, newValue)
+		if err := todo.UpdateStatus(todos, desc, newValue); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("invalid update field: %s", field)
 	}
