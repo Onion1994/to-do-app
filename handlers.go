@@ -15,6 +15,12 @@ type TodosResponse struct {
 	Todos   []todo.Item
 }
 
+type UpdateRequest struct {
+	Description string
+	Field       todo.UpdateField
+	NewValue    string
+}
+
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	traceID := ctx.Value(traceIDKey).(string)
@@ -61,5 +67,32 @@ func ReadHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(TodosResponse{
 		TraceID: traceID,
 		Todos:   todos,
+	})
+}
+
+func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	traceID := ctx.Value(traceIDKey).(string)
+
+	var request UpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		slog.ErrorContext(ctx, "Failed to decode request", "error", err)
+		return
+	}
+
+	slog.InfoContext(ctx, "Updating todo", "desc", request.Description)
+	if err := todostore.Update(ctx, request.Description, request.Field, request.NewValue); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"traceID": traceID,
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Todo updated",
+		"traceID": traceID,
 	})
 }

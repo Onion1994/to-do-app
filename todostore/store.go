@@ -1,13 +1,13 @@
 package todostore
 
 import (
-    "context"
+	"context"
 	"fmt"
-    "todo-app/storage"
-    "todo-app/todo"
+	"todo-app/storage"
+	"todo-app/todo"
 )
 
-func GetAll(ctx context.Context,) error {
+func GetAll(ctx context.Context) error {
 	todos, err := storage.LoadTodos(ctx)
 	if err != nil {
 		return err

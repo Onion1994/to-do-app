@@ -42,6 +42,7 @@ func startServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/create", CreateHandler)
 	mux.HandleFunc("/read", ReadHandler)
+	mux.HandleFunc("/update", UpdateHandler)
 	// TODO: add /get, /update, /delete handlers
 
 	slog.Info("Starting server on :8080")
