@@ -5,9 +5,15 @@ import (
 	"log/slog"
 	"net/http"
 
+	"todo-app/storage"
 	"todo-app/todo"
 	"todo-app/todostore"
 )
+
+type TodosResponse struct {
+	TraceID string
+	Todos   []todo.Item
+}
 
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -34,5 +40,26 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Todo created",
 		"traceID": traceID,
+	})
+}
+
+func ReadHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	traceID := ctx.Value(traceIDKey).(string)
+
+	todos, err := storage.LoadTodos(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"traceID": traceID,
+		})
+		slog.ErrorContext(ctx, "Failed to fetch todo items", "error", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(TodosResponse{
+		TraceID: traceID,
+		Todos:   todos,
 	})
 }

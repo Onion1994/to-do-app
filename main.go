@@ -41,6 +41,7 @@ func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 func startServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/create", CreateHandler)
+	mux.HandleFunc("/read", ReadHandler)
 	// TODO: add /get, /update, /delete handlers
 
 	slog.Info("Starting server on :8080")
