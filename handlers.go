@@ -96,3 +96,31 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		"traceID": traceID,
 	})
 }
+
+func DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	traceID := ctx.Value(traceIDKey).(string)
+
+	var item todo.Item
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		slog.ErrorContext(ctx, "Failed to decode request", "error", err)
+		return
+	}
+
+	slog.InfoContext(ctx, "Deleting todo", "desc", item.Description)
+
+	if err := todostore.Remove(ctx, item.Description); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"traceID": traceID,
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Todo deleted",
+		"traceID": traceID,
+	})
+}

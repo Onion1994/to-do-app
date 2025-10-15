@@ -43,7 +43,7 @@ func startServer() {
 	mux.HandleFunc("/create", CreateHandler)
 	mux.HandleFunc("/read", ReadHandler)
 	mux.HandleFunc("/update", UpdateHandler)
-	// TODO: add /get, /update, /delete handlers
+	mux.HandleFunc("/delete", DeleteHandler)
 
 	slog.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", TraceMiddleware(mux)); err != nil {
