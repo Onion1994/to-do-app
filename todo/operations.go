@@ -60,6 +60,12 @@ func UpdateStatus(todos []Item, desc string, status string) error {
 func UpdateDesc(todos []Item, oldDesc string, newDesc string) error {
 	found := false
 	for i := range todos {
+		if todos[i].Description == strings.ToLower(newDesc) {
+			return fmt.Errorf("new description for item already exists")
+		}
+	}
+
+	for i := range todos {
 		if todos[i].Description == strings.ToLower(oldDesc) {
 			found = true
 			todos[i].Description = strings.ToLower(newDesc)

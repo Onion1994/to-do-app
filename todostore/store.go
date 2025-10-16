@@ -69,7 +69,7 @@ func Update(ctx context.Context, desc string, field todo.UpdateField, newValue s
 			return err
 		}
 	default:
-		return fmt.Errorf("invalid update field: %s", field)
+		return fmt.Errorf("invalid update field: %s. Valid fields are: %s, %s", field, todo.UpdateFieldDescription, todo.UpdateFieldStatus)
 	}
 
 	if err := fs.SaveTodos(ctx, todos); err != nil {

@@ -299,6 +299,37 @@ func TestUpdateDescAbsentItem(t *testing.T) {
 	}
 }
 
+func TestUpdateDescToExistingDesc(t *testing.T) {
+	// Arrange
+	var todos []Item
+
+	// Act
+	todos, err := AddNewItem(todos, "test1")
+	if err != nil {
+		t.Errorf("AddNewItem failed: %v", err)
+	}
+	todos, err = AddNewItem(todos, "test2")
+	if err != nil {
+		t.Errorf("AddNewItem failed: %v", err)
+	}
+
+	if err = UpdateDesc(todos, "test1", "test2"); err == nil {
+		t.Fatal("expected error for updating to an already existing description, got nil")
+	}
+
+	// Assert
+	expected := 2
+	actual := len(todos)
+
+	if actual != expected ||
+		todos[0].Description != "test1" ||
+		todos[0].Status != NotStarted ||
+		todos[1].Description != "test2" ||
+		todos[1].Status != NotStarted {
+		t.Errorf("todos do not match: %+v", todos)
+	}
+}
+
 func TestUpdateStatusAbsentItem(t *testing.T) {
 	// Arrange
 	var todos []Item
