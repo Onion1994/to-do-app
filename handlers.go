@@ -28,18 +28,18 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	var item todo.Item
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "failed to decode request", "error", err)
+		slog.ErrorContext(ctx, "failed to decode request", "traceID", traceID, "error", err)
 		return
 	}
 
-	slog.InfoContext(ctx, "Creating todo", "desc", item.Description)
+	slog.InfoContext(ctx, "Creating todo", "desc", item.Description, "traceID", traceID)
 
 	if err := todostore.Add(ctx, item.Description); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
-		slog.ErrorContext(ctx, "failed to add item", "error", err)
+		slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func ReadHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
-		slog.ErrorContext(ctx, "failed to fetch todo items", "error", err)
+		slog.ErrorContext(ctx, "failed to fetch todo items", "traceID", traceID, "error", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	var request UpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "failed to decode request", "error", err)
+		slog.ErrorContext(ctx, "failed to decode request", "traceID", traceID, "error", err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
-		slog.ErrorContext(ctx, "failed to update item", "error", err)
+		slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		return
 	}
 
@@ -106,18 +106,18 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	var item todo.Item
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
-		slog.ErrorContext(ctx, "failed to decode request", "error", err)
+		slog.ErrorContext(ctx, "failed to decode request", "traceID", traceID, "error", err)
 		return
 	}
 
-	slog.InfoContext(ctx, "Deleting todo", "desc", item.Description)
+	slog.InfoContext(ctx, "Deleting todo", "desc", item.Description, "traceID", traceID)
 
 	if err := todostore.Remove(ctx, item.Description); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{
 			"traceID": traceID,
 		})
-		slog.ErrorContext(ctx, "failed to remove item", "error", err)
+		slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
 		return
 	}
 

@@ -19,20 +19,30 @@ const traceIDKey contextKey = "traceID"
 func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 	traceID := uuid.New().String()
 	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
-	logger := slog.Default().With("traceID", traceID)
-	slog.SetDefault(logger)
 
 	switch {
 	case view:
 		todostore.GetAll(ctx)
 	case add != "":
-		todostore.Add(ctx, add)
+		slog.InfoContext(ctx, "Creating todo", "desc", add, "traceID", traceID)
+		if err := todostore.Add(ctx, add); err != nil {
+			slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
+		}
 	case remove != "":
-		todostore.Remove(ctx, remove)
+		slog.InfoContext(ctx, "Deleting todo", "desc", remove, "traceID", traceID)
+		if err := todostore.Remove(ctx, remove); err != nil {
+			slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
+		}
 	case find != "" && updateStatus != "":
-		todostore.Update(ctx, find, todo.UpdateFieldStatus, updateStatus)
+		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)
+		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateStatus); err != nil {
+			slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
+		}
 	case find != "" && updateDesc != "":
-		todostore.Update(ctx, find, todo.UpdateFieldDescription, updateDesc)
+		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)
+		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateDesc); err != nil {
+			slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
+		}
 	default:
 		slog.InfoContext(ctx, "No CLI action specified")
 	}
