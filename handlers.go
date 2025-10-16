@@ -10,6 +10,10 @@ import (
 	"todo-app/todostore"
 )
 
+type App struct {
+	FS *storage.FileStore
+}
+
 type TodosResponse struct {
 	TraceID string
 	Todos   []todo.Item
@@ -21,7 +25,7 @@ type UpdateRequest struct {
 	NewValue    string
 }
 
-func CreateHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	traceID := ctx.Value(traceIDKey).(string)
 
@@ -34,11 +38,9 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.InfoContext(ctx, "Creating todo", "desc", item.Description, "traceID", traceID)
 
-	if err := todostore.Add(ctx, item.Description); err != nil {
+	if err := todostore.Add(ctx, item.Description, a.FS); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"traceID": traceID,
-		})
+		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
 		slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
 		return
 	}
@@ -50,16 +52,14 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func ReadHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) ReadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	traceID := ctx.Value(traceIDKey).(string)
 
-	todos, err := storage.LoadTodos(ctx)
+	todos, err := a.FS.LoadTodos(ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"traceID": traceID,
-		})
+		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
 		slog.ErrorContext(ctx, "failed to fetch todo items", "traceID", traceID, "error", err)
 		return
 	}
@@ -71,7 +71,7 @@ func ReadHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	traceID := ctx.Value(traceIDKey).(string)
 
@@ -83,11 +83,9 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.InfoContext(ctx, "Updating todo", "desc", request.Description)
-	if err := todostore.Update(ctx, request.Description, request.Field, request.NewValue); err != nil {
+	if err := todostore.Update(ctx, request.Description, request.Field, request.NewValue, a.FS); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"traceID": traceID,
-		})
+		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
 		slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		return
 	}
@@ -99,7 +97,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (a *App) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	traceID := ctx.Value(traceIDKey).(string)
 
@@ -112,11 +110,9 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.InfoContext(ctx, "Deleting todo", "desc", item.Description, "traceID", traceID)
 
-	if err := todostore.Remove(ctx, item.Description); err != nil {
+	if err := todostore.Remove(ctx, item.Description, a.FS); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"traceID": traceID,
-		})
+		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
 		slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
 		return
 	}

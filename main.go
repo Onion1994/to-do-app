@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"todo-app/storage"
 	"todo-app/todo"
 	"todo-app/todostore"
 
@@ -19,28 +20,29 @@ const traceIDKey contextKey = "traceID"
 func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 	traceID := uuid.New().String()
 	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
+	fs := &storage.FileStore{Path: "todos.json"}
 
 	switch {
 	case view:
-		todostore.GetAll(ctx)
+		todostore.GetAll(ctx, fs)
 	case add != "":
 		slog.InfoContext(ctx, "Creating todo", "desc", add, "traceID", traceID)
-		if err := todostore.Add(ctx, add); err != nil {
+		if err := todostore.Add(ctx, add, fs); err != nil {
 			slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
 		}
 	case remove != "":
 		slog.InfoContext(ctx, "Deleting todo", "desc", remove, "traceID", traceID)
-		if err := todostore.Remove(ctx, remove); err != nil {
+		if err := todostore.Remove(ctx, remove, fs); err != nil {
 			slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
 		}
 	case find != "" && updateStatus != "":
 		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)
-		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateStatus); err != nil {
+		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateStatus, fs); err != nil {
 			slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		}
 	case find != "" && updateDesc != "":
 		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)
-		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateDesc); err != nil {
+		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateDesc, fs); err != nil {
 			slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		}
 	default:
@@ -49,11 +51,14 @@ func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 }
 
 func startServer() {
+	fs := &storage.FileStore{Path: "todos.json"}
+	app := &App{FS: fs}
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/create", CreateHandler)
-	mux.HandleFunc("/read", ReadHandler)
-	mux.HandleFunc("/update", UpdateHandler)
-	mux.HandleFunc("/delete", DeleteHandler)
+	mux.HandleFunc("/create", app.CreateHandler)
+	mux.HandleFunc("/read", app.ReadHandler)
+	mux.HandleFunc("/update", app.UpdateHandler)
+	mux.HandleFunc("/delete", app.DeleteHandler)
 
 	slog.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", TraceMiddleware(mux)); err != nil {

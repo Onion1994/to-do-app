@@ -8,33 +8,23 @@ import (
 	"todo-app/todo"
 )
 
-func TestMain(m *testing.M) {
-	tmpFile := "test_todos.json"
-	origFile := todoFile
-	todoFile = tmpFile
-
-	exitCode := m.Run()
-
-	todoFile = origFile
-	os.Remove(tmpFile)
-
-	os.Exit(exitCode)
-}
-
 func TestSaveAndLoadTodos(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
+	tmpFile := "test_todos.json"
+	fs := &FileStore{Path: tmpFile}
+
 	todos := []todo.Item{
 		{Description: "test1", Status: todo.NotStarted},
 		{Description: "test2", Status: todo.Completed},
 	}
 
 	// Act
-	if err := SaveTodos(ctx, todos); err != nil {
+	if err := fs.SaveTodos(ctx, todos); err != nil {
 		t.Fatalf("SaveTodos failed: %v", err)
 	}
 
-	loaded, err := LoadTodos(ctx)
+	loaded, err := fs.LoadTodos(ctx)
 	if err != nil {
 		t.Fatalf("LoadTodos failed: %v", err)
 	}
@@ -48,4 +38,6 @@ func TestSaveAndLoadTodos(t *testing.T) {
 
 		t.Errorf("Loaded todos do not match: %+v", loaded)
 	}
+
+	os.Remove(tmpFile)
 }

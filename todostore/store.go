@@ -7,19 +7,18 @@ import (
 	"todo-app/todo"
 )
 
-func GetAll(ctx context.Context) error {
-	todos, err := storage.LoadTodos(ctx)
+func GetAll(ctx context.Context, fs *storage.FileStore) error {
+	todos, err := fs.LoadTodos(ctx)
 	if err != nil {
 		return err
 	}
 
 	todo.PrintTodos(todos)
-
 	return nil
 }
 
-func Add(ctx context.Context, desc string) error {
-	todos, err := storage.LoadTodos(ctx)
+func Add(ctx context.Context, desc string, fs *storage.FileStore) error {
+	todos, err := fs.LoadTodos(ctx)
 	if err != nil {
 		return err
 	}
@@ -29,15 +28,15 @@ func Add(ctx context.Context, desc string) error {
 		return err
 	}
 
-	if err := storage.SaveTodos(ctx, todos); err != nil {
+	if err := fs.SaveTodos(ctx, todos); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func Remove(ctx context.Context, desc string) error {
-	todos, err := storage.LoadTodos(ctx)
+func Remove(ctx context.Context, desc string, fs *storage.FileStore) error {
+	todos, err := fs.LoadTodos(ctx)
 	if err != nil {
 		return err
 	}
@@ -47,15 +46,15 @@ func Remove(ctx context.Context, desc string) error {
 		return err
 	}
 
-	if err := storage.SaveTodos(ctx, todos); err != nil {
+	if err := fs.SaveTodos(ctx, todos); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func Update(ctx context.Context, desc string, field todo.UpdateField, newValue string) error {
-	todos, err := storage.LoadTodos(ctx)
+func Update(ctx context.Context, desc string, field todo.UpdateField, newValue string, fs *storage.FileStore) error {
+	todos, err := fs.LoadTodos(ctx)
 	if err != nil {
 		return err
 	}
@@ -73,7 +72,7 @@ func Update(ctx context.Context, desc string, field todo.UpdateField, newValue s
 		return fmt.Errorf("invalid update field: %s", field)
 	}
 
-	if err := storage.SaveTodos(ctx, todos); err != nil {
+	if err := fs.SaveTodos(ctx, todos); err != nil {
 		return err
 	}
 

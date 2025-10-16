@@ -9,10 +9,12 @@ import (
 	"todo-app/todo"
 )
 
-var todoFile = "todos.json"
+type FileStore struct {
+	Path string
+}
 
-func LoadTodos(ctx context.Context) ([]todo.Item, error) {
-	file, err := os.Open(todoFile)
+func (fs *FileStore) LoadTodos(ctx context.Context) ([]todo.Item, error) {
+	file, err := os.Open(fs.Path)
 
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -36,8 +38,8 @@ func LoadTodos(ctx context.Context) ([]todo.Item, error) {
 	return todos, nil
 }
 
-func SaveTodos(ctx context.Context, todos []todo.Item) error {
-	file, err := os.Create(todoFile)
+func (fs *FileStore) SaveTodos(ctx context.Context, todos []todo.Item) error {
+	file, err := os.Create(fs.Path)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to create or open todo file", "error", err)
 		return err
