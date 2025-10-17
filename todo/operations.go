@@ -1,8 +1,16 @@
 package todo
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+)
+
+var (
+	ErrItemExists    = errors.New("item already exists")
+	ErrItemNotFound  = errors.New("item not found")
+	ErrInvalidStatus = errors.New("invalid status")
+	ErrDuplicateDesc = errors.New("new description already exists")
 )
 
 func PrintTodos(todos []Item) {
@@ -15,7 +23,7 @@ func AddNewItem(todos []Item, desc string) ([]Item, error) {
 	lowerCaseDesc := strings.ToLower(desc)
 	for _, item := range todos {
 		if item.Description == lowerCaseDesc {
-			return todos, fmt.Errorf("item already exists")
+			return todos, fmt.Errorf("%w: %s", ErrItemExists, desc)
 		}
 	}
 
@@ -31,37 +39,32 @@ func RemoveItem(todos []Item, desc string) ([]Item, error) {
 	}
 
 	if len(updatedTodos) == len(todos) {
-		return todos, fmt.Errorf("item does not exist")
+		return todos, fmt.Errorf("%w: %s", ErrItemNotFound, desc)
 	}
 
 	return updatedTodos, nil
 }
 
-func UpdateStatus(todos []Item, desc string, status string) error {
-	if IsValidStatus(status) {
-		found := false
-		for i := range todos {
-			if todos[i].Description == strings.ToLower(desc) {
-				found = true
-				todos[i].Status = strings.ToLower(status)
-			}
-		}
-
-		if found {
-			return nil
-		}
-
-		return fmt.Errorf("item not found")
+func UpdateStatus(todos []Item, desc, status string) error {
+	if !IsValidStatus(status) {
+		return fmt.Errorf("%w: %s", ErrInvalidStatus, status)
 	}
 
-	return fmt.Errorf("invalid status '%s'. Valid statuses are: %s, %s, %s", status, NotStarted, Started, Completed)
+	for i := range todos {
+		if todos[i].Description == strings.ToLower(desc) {
+			todos[i].Status = strings.ToLower(status)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: %s", ErrItemNotFound, desc)
 }
 
 func UpdateDesc(todos []Item, oldDesc string, newDesc string) error {
 	found := false
 	for i := range todos {
 		if todos[i].Description == strings.ToLower(newDesc) {
-			return fmt.Errorf("new description for item already exists")
+			return fmt.Errorf("%w: %s", ErrDuplicateDesc, newDesc)
 		}
 	}
 
@@ -76,5 +79,5 @@ func UpdateDesc(todos []Item, oldDesc string, newDesc string) error {
 		return nil
 	}
 
-	return fmt.Errorf("item not found")
+	return fmt.Errorf("%w: %s", ErrItemNotFound, oldDesc)
 }

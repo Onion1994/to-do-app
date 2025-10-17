@@ -28,12 +28,12 @@ func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 	case add != "":
 		slog.InfoContext(ctx, "Creating todo", "desc", add, "traceID", traceID)
 		if err := todostore.Add(ctx, add, fs); err != nil {
-			slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
+			slog.ErrorContext(ctx, "failed to create item", "traceID", traceID, "error", err)
 		}
 	case remove != "":
 		slog.InfoContext(ctx, "Deleting todo", "desc", remove, "traceID", traceID)
 		if err := todostore.Remove(ctx, remove, fs); err != nil {
-			slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
+			slog.ErrorContext(ctx, "failed to delete item", "traceID", traceID, "error", err)
 		}
 	case find != "" && updateStatus != "":
 		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)

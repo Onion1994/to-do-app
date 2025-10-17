@@ -2,10 +2,14 @@ package todostore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
 	"todo-app/storage"
 	"todo-app/todo"
 )
+
+var ErrInvalidUpdateField = errors.New("invalid update field")
 
 func GetAll(ctx context.Context, fs *storage.FileStore) error {
 	todos, err := fs.LoadTodos(ctx)
@@ -69,7 +73,7 @@ func Update(ctx context.Context, desc string, field todo.UpdateField, newValue s
 			return err
 		}
 	default:
-		return fmt.Errorf("invalid update field: %s. Valid fields are: %s, %s", field, todo.UpdateFieldDescription, todo.UpdateFieldStatus)
+		return fmt.Errorf("%w: %s. Valid fields are: %s, %s", ErrInvalidUpdateField, field, todo.UpdateFieldDescription, todo.UpdateFieldStatus)
 	}
 
 	if err := fs.SaveTodos(ctx, todos); err != nil {

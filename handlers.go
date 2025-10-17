@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -39,9 +40,20 @@ func (a *App) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	slog.InfoContext(ctx, "Creating todo", "desc", item.Description, "traceID", traceID)
 
 	if err := todostore.Add(ctx, item.Description, a.FS); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
-		slog.ErrorContext(ctx, "failed to add item", "traceID", traceID, "error", err)
+		if errors.Is(err, todo.ErrItemExists) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "item already exists",
+				"traceID": traceID,
+			})
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "failed to create item",
+				"traceID": traceID,
+			})
+		}
+		slog.ErrorContext(ctx, "failed to create item", "traceID", traceID, "error", err)
 		return
 	}
 
@@ -84,8 +96,22 @@ func (a *App) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.InfoContext(ctx, "Updating todo", "desc", request.Description)
 	if err := todostore.Update(ctx, request.Description, request.Field, request.NewValue, a.FS); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
+		if errors.Is(err, todostore.ErrInvalidUpdateField) ||
+			errors.Is(err, todo.ErrDuplicateDesc) ||
+			errors.Is(err, todo.ErrInvalidStatus) ||
+			errors.Is(err, todo.ErrItemNotFound) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "invalid data provided",
+				"traceID": traceID,
+			})
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "failed to update item",
+				"traceID": traceID,
+			})
+		}
 		slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		return
 	}
@@ -111,9 +137,20 @@ func (a *App) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	slog.InfoContext(ctx, "Deleting todo", "desc", item.Description, "traceID", traceID)
 
 	if err := todostore.Remove(ctx, item.Description, a.FS); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"traceID": traceID})
-		slog.ErrorContext(ctx, "failed to remove item", "traceID", traceID, "error", err)
+		if errors.Is(err, todo.ErrItemNotFound) {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "item not found",
+				"traceID": traceID,
+			})
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":   "failed to delete item",
+				"traceID": traceID,
+			})
+		}
+		slog.ErrorContext(ctx, "failed to delete item", "traceID", traceID, "error", err)
 		return
 	}
 
