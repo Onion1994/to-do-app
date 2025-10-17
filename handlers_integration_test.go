@@ -85,8 +85,58 @@ func TestDeleteHandler(t *testing.T) {
 	app.ReadHandler(readW, readReq)
 
 	var readResp TodosResponse
-	json.NewDecoder(readW.Result().Body).Decode(&readResp)
+	if err := json.NewDecoder(readW.Result().Body).Decode(&readResp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
 	if len(readResp.Todos) != 0 {
 		t.Errorf("expected 0 todos after deletion, got %+v", readResp.Todos)
+	}
+}
+
+func TestUpdateHandler(t *testing.T) {
+	app := newTestApp(t)
+
+	// Add first
+	createItem := todo.Item{Description: "take bins out"}
+	createBody, _ := json.Marshal(createItem)
+	createReq := httptest.NewRequest(http.MethodPost, "/create", bytes.NewReader(createBody))
+	createReq = createReq.WithContext(context.WithValue(createReq.Context(), traceIDKey, "trace-update"))
+	createW := httptest.NewRecorder()
+	app.CreateHandler(createW, createReq)
+
+	// Now update
+	updateItem := UpdateRequest{Description: "take bins out", Field: todo.UpdateFieldStatus, NewValue: todo.Completed}
+	updateBody, _ := json.Marshal(updateItem)
+	updateReq := httptest.NewRequest(http.MethodPatch, "/update", bytes.NewReader(updateBody))
+	updateReq = updateReq.WithContext(context.WithValue(updateReq.Context(), traceIDKey, "trace-update"))
+	updateW := httptest.NewRecorder()
+
+	app.UpdateHandler(updateW, updateReq)
+	resp := updateW.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d", resp.StatusCode)
+	}
+
+	// Verify update
+	readReq := httptest.NewRequest(http.MethodGet, "/read", nil)
+	readReq = readReq.WithContext(context.WithValue(readReq.Context(), traceIDKey, "trace-del-update"))
+	readW := httptest.NewRecorder()
+	app.ReadHandler(readW, readReq)
+
+	var readResp TodosResponse
+	if err := json.NewDecoder(readW.Result().Body).Decode(&readResp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	found := false
+	for _, element := range readResp.Todos {
+		if element.Description == "take bins out" {
+			found = true
+			if element.Status != todo.Completed {
+				t.Errorf("expected todo to be %s, got %s", todo.Completed, element.Status)
+			}
+		}
+	}
+	if !found {
+		t.Errorf("todo 'take bins out' not found after update")
 	}
 }
