@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"html/template"
 	"log/slog"
 	"net/http"
 
@@ -159,4 +160,28 @@ func (a *App) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		"message": "Todo deleted",
 		"traceID": traceID,
 	})
+}
+
+func (a *App) ListPageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	traceID := ctx.Value(traceIDKey).(string)
+
+	todos, err := a.FS.LoadTodos(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to load todos", "traceID", traceID, "error", err)
+		http.Error(w, "Failed to load todos", http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("templates/list.html")
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to parse template", "traceID", traceID, "error", err)
+		http.Error(w, "Template error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tmpl.Execute(w, todos); err != nil {
+		slog.ErrorContext(ctx, "failed to execute template", "traceID", traceID, "error", err)
+		http.Error(w, "Template execution error", http.StatusInternalServerError)
+	}
 }

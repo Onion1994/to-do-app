@@ -63,6 +63,7 @@ func startServer() {
 	mux.HandleFunc("/read", app.ReadHandler)
 	mux.HandleFunc("/update", app.UpdateHandler)
 	mux.HandleFunc("/delete", app.DeleteHandler)
+	mux.HandleFunc("/list", app.ListPageHandler)
 	mux.Handle("/about/", http.StripPrefix("/about/", http.FileServer(http.Dir("static"))))
 
 	server := &http.Server{
