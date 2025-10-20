@@ -5,6 +5,10 @@ import (
 	"flag"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"todo-app/storage"
 	"todo-app/todo"
@@ -60,10 +64,32 @@ func startServer() {
 	mux.HandleFunc("/update", app.UpdateHandler)
 	mux.HandleFunc("/delete", app.DeleteHandler)
 
-	slog.Info("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", TraceMiddleware(mux)); err != nil {
-		slog.Error("Server failed", "error", err)
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: TraceMiddleware(mux),
 	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		slog.Info("Starting server on :8080")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Server failed", "error", err)
+		}
+	}()
+
+	<-stop
+	slog.Info("Shutting down server gracefully...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("Server forced to shutdown", "error", err)
+	}
+
+	slog.Info("Server stopped")
 }
 
 func main() {
