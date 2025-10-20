@@ -119,7 +119,7 @@ func TestUpdateHandler(t *testing.T) {
 
 	// Verify update
 	readReq := httptest.NewRequest(http.MethodGet, "/read", nil)
-	readReq = readReq.WithContext(context.WithValue(readReq.Context(), traceIDKey, "trace-del-update"))
+	readReq = readReq.WithContext(context.WithValue(readReq.Context(), traceIDKey, "trace-update-read"))
 	readW := httptest.NewRecorder()
 	app.ReadHandler(readW, readReq)
 

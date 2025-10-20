@@ -102,7 +102,7 @@ func (a *App) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 			errors.Is(err, todo.ErrItemNotFound) {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{
-				"error":   "invalid data provided",
+				"error":   err.Error(),
 				"traceID": traceID,
 			})
 		} else {
@@ -138,7 +138,7 @@ func (a *App) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := todostore.Remove(ctx, item.Description, a.FS); err != nil {
 		if errors.Is(err, todo.ErrItemNotFound) {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error":   "item not found",
 				"traceID": traceID,
