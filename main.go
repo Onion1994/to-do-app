@@ -41,7 +41,7 @@ func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 		}
 	case find != "" && updateStatus != "":
 		slog.InfoContext(ctx, "Updating todo", "desc", updateStatus)
-		if err := todostore.Update(ctx, find, todo.UpdateFieldDescription, updateStatus, fs); err != nil {
+		if err := todostore.Update(ctx, find, todo.UpdateFieldStatus, updateStatus, fs); err != nil {
 			slog.ErrorContext(ctx, "failed to update item", "traceID", traceID, "error", err)
 		}
 	case find != "" && updateDesc != "":

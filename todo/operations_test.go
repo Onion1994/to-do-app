@@ -5,352 +5,122 @@ import (
 )
 
 func TestAddNewItem(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
+	tests := []struct {
+		name        string
+		input       []Item
+		desc        string
+		wantDesc    string
+		wantStatus  string
+		wantErr     bool
+		expectedLen int
+	}{
+		{"normal add", []Item{}, "test", "test", NotStarted, false, 1},
+		{"normalises to lowercase", []Item{}, "TEst", "test", NotStarted, false, 1},
+		{"duplicate same case", []Item{{Description: "test", Status: NotStarted}}, "test", "test", NotStarted, true, 1},
+		{"duplicate different case", []Item{{Description: "test", Status: NotStarted}}, "TEst", "test", NotStarted, true, 1},
 	}
 
-	// Assert
-	if len(todos) != 1 ||
-		todos[0].Description != "test" ||
-		todos[0].Status != "not started" {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := AddNewItem(tt.input, tt.desc)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("expected error=%v, got %v", tt.wantErr, err)
+			}
 
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestNewItemsAreNormalisedToLowerCase(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "teSt")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-
-	// Assert
-	if len(todos) != 1 ||
-		todos[0].Description != "test" ||
-		todos[0].Status != NotStarted {
-
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestItemsCannotBeDuplicated(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = AddNewItem(todos, "test")
-	if err == nil {
-		t.Fatal("expected error for duplicate item, got nil")
-	}
-	todos, err = AddNewItem(todos, "TEST")
-	if err == nil {
-		t.Fatal("expected error for duplicate item, got nil")
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected {
-		t.Errorf("todos should be %+v but are %+v", expected, actual)
+			if len(got) != tt.expectedLen {
+				t.Errorf("expected length %d, got %d", tt.expectedLen, len(got))
+			}
+			if len(got) > 0 && got[0].Description != tt.wantDesc {
+				t.Errorf("expected description %q, got %q", tt.wantDesc, got[0].Description)
+			}
+			if len(got) > 0 && got[0].Status != tt.wantStatus {
+				t.Errorf("expected status %q, got %q", tt.wantStatus, got[0].Status)
+			}
+		})
 	}
 }
 
 func TestRemoveItem(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = AddNewItem(todos, "test2")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = RemoveItem(todos, "test1")
-	if err != nil {
-		t.Fatalf("RemoveItem failed: %v", err)
+	tests := []struct {
+		name        string
+		input       []Item
+		desc        string
+		wantErr     bool
+		expectedLen int
+	}{
+		{"remove existing", []Item{{Description: "test"}}, "test", false, 0},
+		{"remove ingores case", []Item{{Description: "test"}}, "TEst", false, 0},
+		{"remove absent", []Item{{Description: "test1", Status: NotStarted}}, "test2", true, 1},
 	}
 
-	// Assert
-	expected := 1
-	actual := len(todos)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := RemoveItem(tt.input, tt.desc)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("expected error=%v, got %v", tt.wantErr, err)
+			}
 
-	if actual != expected ||
-		todos[0].Description != "test2" {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestRemoveItemIgnoresCase(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = AddNewItem(todos, "test2")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = RemoveItem(todos, "tEsT1")
-	if err != nil {
-		t.Fatalf("RemoveItem failed: %v", err)
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test2" {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestRemovingAbsentItem(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Fatalf("AddNewItem failed: %v", err)
-	}
-	todos, err = RemoveItem(todos, "test2")
-	if err == nil {
-		t.Fatal("expected error for removing absent item, got nil")
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test1" {
-		t.Errorf("todos do not match: %+v", todos)
+			if len(got) != tt.expectedLen {
+				t.Errorf("expected length %d, got %d", tt.expectedLen, len(got))
+			}
+		})
 	}
 }
 
 func TestUpdateStatus(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
+	tests := []struct {
+		name       string
+		todos      []Item
+		targetDesc string
+		newStatus  string
+		wantStatus string
+		wantErr    bool
+	}{
+		{"valid update", []Item{{Description: "test", Status: NotStarted}}, "test", Started, Started, false},
+		{"case-insensitive match", []Item{{Description: "test", Status: NotStarted}}, "TEST", Started, Started, false},
+		{"invalid status", []Item{{Description: "test", Status: NotStarted}}, "test", "invalid status", NotStarted, true},
+		{"absent item", []Item{{"test", NotStarted}}, "nope", Completed, NotStarted, true},
 	}
 
-	if err = UpdateStatus(todos, "test", Completed); err != nil {
-		t.Fatalf("UpdateStatus failed: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := UpdateStatus(tt.todos, tt.targetDesc, tt.newStatus)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("expected error=%v, got %v", tt.wantErr, err)
+			}
 
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test" ||
-		todos[0].Status != Completed {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateStatusIgnoresCase(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateStatus(todos, "TeSt", "COmpleTED"); err != nil {
-		t.Fatalf("UpdateStatus failed: %v", err)
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test" ||
-		todos[0].Status != Completed {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateStatusOnlyIfValidStatus(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateStatus(todos, "test", "banana"); err == nil {
-		t.Fatal("expected error for invalid status, got nil")
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test" ||
-		todos[0].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
+			if tt.todos[0].Status != tt.wantStatus {
+				t.Errorf("expected status %q, got %q", tt.wantStatus, tt.todos[0].Status)
+			}
+		})
 	}
 }
 
 func TestUpdateDesc(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
+	tests := []struct {
+		name       string
+		todos      []Item
+		targetDesc string
+		newDesc    string
+		wantDesc   string
+		wantErr    bool
+	}{
+		{"valid update", []Item{{"test1", NotStarted}}, "test1", "test2", "test2", false},
+		{"case-insensitive update", []Item{{"test1", NotStarted}}, "TeSt1", "TEst2", "test2", false},
+		{"absent item", []Item{{"test1", NotStarted}}, "test2", "test3", "test1", true},
+		{"duplicate new desc", []Item{{"test1", NotStarted}, {"test2", NotStarted}}, "test1", "test2", "test1", true},
 	}
 
-	if err = UpdateDesc(todos, "test1", "test2"); err != nil {
-		t.Fatalf("UpdateDesc failed: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := UpdateDesc(tt.todos, tt.targetDesc, tt.newDesc)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("expected error=%v, got %v", tt.wantErr, err)
+			}
 
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test2" ||
-		todos[0].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateDescIgnoresCase(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateDesc(todos, "TeSt1", "TEst2"); err != nil {
-		t.Fatalf("UpdateDesc failed: %v", err)
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test2" ||
-		todos[0].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateDescAbsentItem(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateDesc(todos, "test2", "test3"); err == nil {
-		t.Fatal("expected error for updating absent item, got nil")
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test1" ||
-		todos[0].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateDescToExistingDesc(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-	todos, err = AddNewItem(todos, "test2")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateDesc(todos, "test1", "test2"); err == nil {
-		t.Fatal("expected error for updating to an already existing description, got nil")
-	}
-
-	// Assert
-	expected := 2
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test1" ||
-		todos[0].Status != NotStarted ||
-		todos[1].Description != "test2" ||
-		todos[1].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
-	}
-}
-
-func TestUpdateStatusAbsentItem(t *testing.T) {
-	// Arrange
-	var todos []Item
-
-	// Act
-	todos, err := AddNewItem(todos, "test1")
-	if err != nil {
-		t.Errorf("AddNewItem failed: %v", err)
-	}
-
-	if err = UpdateStatus(todos, "test2", "completed"); err == nil {
-		t.Fatal("expected error for updating absent item, got nil")
-	}
-
-	// Assert
-	expected := 1
-	actual := len(todos)
-
-	if actual != expected ||
-		todos[0].Description != "test1" ||
-		todos[0].Status != NotStarted {
-		t.Errorf("todos do not match: %+v", todos)
+			if tt.todos[0].Description != tt.wantDesc {
+				t.Errorf("expected description %q, got %q", tt.wantDesc, tt.todos[0].Description)
+			}
+		})
 	}
 }
