@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	ErrItemIsEmpty   = errors.New("item description cannot be empty")
 	ErrItemExists    = errors.New("item already exists")
 	ErrItemNotFound  = errors.New("item not found")
 	ErrInvalidStatus = errors.New("invalid status")
@@ -20,6 +21,9 @@ func PrintTodos(todos []Item) {
 }
 
 func AddNewItem(todos []Item, desc string) ([]Item, error) {
+	if len(desc) == 0 {
+		return todos, fmt.Errorf("%w: %s", ErrItemIsEmpty, desc)
+	}
 	lowerCaseDesc := strings.ToLower(desc)
 	for _, item := range todos {
 		if item.Description == lowerCaseDesc {

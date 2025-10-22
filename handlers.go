@@ -41,10 +41,11 @@ func (a *App) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	slog.InfoContext(ctx, "Creating todo", "desc", item.Description, "traceID", traceID)
 
 	if err := todostore.Add(ctx, item.Description, a.FS); err != nil {
-		if errors.Is(err, todo.ErrItemExists) {
+		if errors.Is(err, todo.ErrItemExists) ||
+			errors.Is(err, todo.ErrItemIsEmpty) {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{
-				"error":   "item already exists",
+				"error":   err.Error(),
 				"traceID": traceID,
 			})
 		} else {

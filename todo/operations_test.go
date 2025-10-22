@@ -18,6 +18,7 @@ func TestAddNewItem(t *testing.T) {
 		{"normalises to lowercase", []Item{}, "TEst", "test", NotStarted, false, 1},
 		{"duplicate same case", []Item{{Description: "test", Status: NotStarted}}, "test", "test", NotStarted, true, 1},
 		{"duplicate different case", []Item{{Description: "test", Status: NotStarted}}, "TEst", "test", NotStarted, true, 1},
+		{"empty description", []Item{{Description: "test", Status: NotStarted}}, "", "test", NotStarted, true, 1},
 	}
 
 	for _, tt := range tests {
