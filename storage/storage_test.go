@@ -12,7 +12,8 @@ func TestSaveAndLoadTodos(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	tmpFile := "test_todos.json"
-	fs := &FileStore{Path: tmpFile}
+	fs := NewFileStore(tmpFile)
+	defer fs.Close()
 
 	todos := []todo.Item{
 		{Description: "test1", Status: todo.NotStarted},

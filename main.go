@@ -24,7 +24,8 @@ const traceIDKey contextKey = "traceID"
 func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 	traceID := uuid.New().String()
 	ctx := context.WithValue(context.Background(), traceIDKey, traceID)
-	fs := &storage.FileStore{Path: "todos.json"}
+	fs := storage.NewFileStore("todos.json")
+	defer fs.Close()
 
 	switch {
 	case view:
@@ -55,7 +56,8 @@ func startCLI(view bool, add, find, updateStatus, updateDesc, remove string) {
 }
 
 func startServer() {
-	fs := &storage.FileStore{Path: "todos.json"}
+	fs := storage.NewFileStore("todos.json")
+	defer fs.Close()
 	app := &App{FS: fs}
 
 	mux := http.NewServeMux()

@@ -21,11 +21,12 @@ func startTestServer(t *testing.T) (baseURL string, cleanup func()) {
 
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "todos.json")
+
 	if err := os.WriteFile(tmpFile, []byte("[]"), 0644); err != nil {
 		t.Fatalf("failed to initialize temp file: %v", err)
 	}
 
-	fs := &storage.FileStore{Path: tmpFile}
+	fs := storage.NewFileStore(tmpFile)
 	app := &App{FS: fs}
 
 	mux := http.NewServeMux()
