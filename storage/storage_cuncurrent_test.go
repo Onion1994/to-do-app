@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func TestConcurrentReads(t *testing.T) {
+	t.Parallel()
+
 	tmpFile := t.TempDir() + "/concurrent_reads.json"
 	fs := NewFileStore(tmpFile)
 	defer fs.Close()
@@ -57,3 +60,48 @@ func TestConcurrentReads(t *testing.T) {
 	}
 }
 
+func TestConcurrentReadAndWrite(t *testing.T) {
+	t.Parallel()
+
+	tmpFile := t.TempDir() + "/concurrent_rw.json"
+	fs := NewFileStore(tmpFile)
+	defer fs.Close()
+
+	initial := []todo.Item{{Description: "initial", Status: todo.NotStarted}}
+	if err := fs.SaveTodos(context.Background(), initial); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	const numOperations = 100
+	var wg sync.WaitGroup
+	wg.Add(numOperations * 2)
+
+	errors := make(chan error, numOperations*2)
+
+	for range numOperations {
+		go func() {
+			defer wg.Done()
+			_, err := fs.LoadTodos(context.Background())
+			if err != nil {
+				errors <- err
+			}
+		}()
+	}
+
+	for i := range numOperations {
+		go func() {
+			defer wg.Done()
+			todos := []todo.Item{{Description: fmt.Sprintf("task %d", i), Status: todo.NotStarted}}
+			if err := fs.SaveTodos(context.Background(), todos); err != nil {
+				errors <- err
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(errors)
+
+	for err := range errors {
+		t.Errorf("operation failed: %v", err)
+	}
+}
