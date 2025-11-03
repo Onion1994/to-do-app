@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"todo-app/todo"
 )
@@ -103,5 +104,29 @@ func TestConcurrentReadAndWrite(t *testing.T) {
 
 	for err := range errors {
 		t.Errorf("operation failed: %v", err)
+	}
+}
+
+func TestActorShutdown(t *testing.T) {
+	t.Parallel()
+
+	tmpFile := t.TempDir() + "/shutdown_test.json"
+	fs := NewFileStore(tmpFile)
+
+	todos := []todo.Item{{Description: "test", Status: todo.NotStarted}}
+	if err := fs.SaveTodos(context.Background(), todos); err != nil {
+		t.Fatalf("save failed: %v", err)
+	}
+
+	done := make(chan struct{})
+	go func() {
+		fs.Close()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Close() hung - actor didn't shutdown")
 	}
 }
