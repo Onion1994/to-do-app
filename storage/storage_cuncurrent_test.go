@@ -105,6 +105,15 @@ func TestConcurrentReadAndWrite(t *testing.T) {
 	for err := range errors {
 		t.Errorf("operation failed: %v", err)
 	}
+
+	todos, err := fs.LoadTodos(context.Background())
+	if err != nil {
+		t.Fatalf("final load failed: %v", err)
+	}
+
+	if len(todos) != 1 {
+		t.Errorf("expected 1 todo after all writes, got %d", len(todos))
+	}
 }
 
 func TestActorShutdown(t *testing.T) {
